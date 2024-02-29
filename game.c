@@ -12,8 +12,8 @@ const int width = 20;
 const int height = 20;
 int x, y, obstacleX, obstacleY, score;
 enum Direction { STOP = 0, LEFT, RIGHT, UP, DOWN };
-int spaceshipX = 100;
-int spaceshipY = 100;
+int panX = 100;
+int panY = 100;
 
 struct Global {
     Display *dpy;
@@ -37,14 +37,14 @@ void pan()
     // Draw border
     XDrawRectangle(g.dpy, g.win, g.gc, 0, 0, width * 20, height * 20);
 
-    // Draw spaceship
+    // Draw pan
     XFillRectangle(g.dpy, g.win, g.gc, x * 20, y * 20, 20, 20);
 
-    // Draw obstacle
+    // Draw pan
     XFillRectangle(g.dpy, g.win, g.gc, obstacleX * 20, obstacleY * 20, 20, 20);
 
-    // Bottom of screen (location of spaceship)
-    XFillRectangle(g.dpy, g.win, g.gc, spaceshipX, spaceshipY, 20, 20);
+    // Bottom of screen (location of pan)
+    XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
 
     XFlush(g.dpy);
 }
