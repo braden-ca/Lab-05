@@ -10,6 +10,9 @@
 bool gameOver;
 const int width = 20;
 const int height = 20;
+int score;
+int panX = 100;
+int panY = 100;
 
 struct Global {
     Display *dpy;
@@ -28,11 +31,14 @@ void render(void)
 {
         XClearWindow(g.dpy, g.win);
 
+        // Font
         XSetFont(g.dpy, g.gc, XLoadFont(g.dpy, "9x15bold"));
-
+        
+        // Foreground color
         XSetForeground(g.dpy, g.gc, 0xffffff);
         XFillRectangle(g.dpy, g.win, g.gc, 0, 0, g.xres, g.yres);
 
+        // Include text
         XSetForeground(g.dpy, g.gc, 0x48494B);
         XDrawString(g.dpy, g.win, g.gc, 125, 20, "GoldRushLite", 12);
 
@@ -42,6 +48,12 @@ void render(void)
         XSetForeground(g.dpy, g.gc, 0x48494B);
         XDrawString(g.dpy, g.win, g.gc, 300, 20, "Score: ", 7);
         
+        // Draw border
+        XDrawRectangle(g.dpy, g.win, g.gc, 0, 0, width * 20, height * 20);
+
+        // Draw pan
+        XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
+
         XFlush(g.dpy);
 
 }
