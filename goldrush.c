@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
+
+#define TIMER_INTERVAL 30
+
 
 bool gameOver;
 const int width = 20;
@@ -13,6 +17,7 @@ const int height = 20;
 int score;
 int panX = 100;
 int panY = 100;
+time_t startTime;
 
 struct Global {
     Display *dpy;
@@ -21,18 +26,34 @@ struct Global {
     int xres, yres;
 } g;
 
+typedef struct {
+      int x, y;
+      int isGold; // 1 for gold, 0 for dynamite/rock
+      int speed;  // Speed of falling object
+  }o;
+
 void x11_cleanup_xwindows(void);
 void x11_init_xwindows(void);
 void x11_clear_window(void);
 void render(void);
 
- 
+void startTimer() {
+     time(&startTime);
+ }
+
+int isTimeUp() {
+    time_t currentTime;
+     time(&currentTime);
+     return (currentTime - startTime) >= TIMER_INTERVAL;
+}
+
+
 void render(void)
 {
         XClearWindow(g.dpy, g.win);
 
         // Font
-        XSetFont(g.dpy, g.gc, XLoadFont(g.dpy, "9x15bold"));
+       // XSetFont(g.dpy, g.gc, XLoadFont(g.dpy, "9x15bold"));
         
         // Foreground color
         XSetForeground(g.dpy, g.gc, 0xffffff);
@@ -99,6 +120,9 @@ void x11_init_xwindows(void)
 
 int main(){
  x11_init_xwindows();
+
+ startTimer();
+
     while (!gameOver) {
         render();
         XEvent e;
