@@ -107,6 +107,25 @@ int main(){
             // Redraw the window
             render();
         }
+            if (e.type == KeyPress || e.type == KeyRelease) {
+            int key = XLookupKeysym(&e.xkey, 0);
+            switch (key) {
+                case XK_Left:
+                    panX -= 5;
+                    break;
+                case XK_Right:
+                    panX += 5;
+                    break;
+                case XK_Up:
+                    panY -= 5;
+                    break;
+                case XK_Down:
+                    panY += 5;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 x11_cleanup_xwindows();
     return 0;
