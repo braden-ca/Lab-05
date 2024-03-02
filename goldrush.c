@@ -66,8 +66,19 @@ void render(void)
         XSetForeground(g.dpy, g.gc, 0x48494B);
         XDrawString(g.dpy, g.win, g.gc, 125, 20, "GoldRushLite", 12);
 
+       // XSetForeground(g.dpy, g.gc, 0x48494B);
+       // XDrawString(g.dpy, g.win, g.gc, 1, 20, "Timer: ", 7);
+
         XSetForeground(g.dpy, g.gc, 0x48494B);
-        XDrawString(g.dpy, g.win, g.gc, 1, 20, "Timer: ", 7);
+    time_t currentTime;
+    time(&currentTime);
+    int remainingTime = TIMER_INTERVAL - (int)(currentTime - startTime);
+    char timerString[20];
+    snprintf(timerString, sizeof(timerString), "Timer: %d", remainingTime);
+    XDrawString(g.dpy, g.win, g.gc, 1, 40, timerString, strlen(timerString));
+
+
+
 
         XSetForeground(g.dpy, g.gc, 0x48494B);
         XDrawString(g.dpy, g.win, g.gc, 300, 20, "Score: ", 7);
@@ -142,6 +153,10 @@ int main(){
  startTimer();
 
     while (!gameOver) {
+        if(isTimeUp()){
+            gameOver = true;
+        }
+
         render();
         XEvent e;
         XNextEvent(g.dpy, &e);
