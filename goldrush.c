@@ -18,6 +18,7 @@ int score;
 int panX = 100;
 int panY = 100;
 time_t startTime;
+int roundCount =1;
 
 struct Global {
     Display *dpy;
@@ -31,6 +32,8 @@ typedef struct {
       int isGold; // 1 for gold, 0 for dynamite/rock
       int speed;  // Speed of falling object
   }o;
+
+o fallingObject;
 
 void x11_cleanup_xwindows(void);
 void x11_init_xwindows(void);
@@ -79,6 +82,21 @@ void render(void)
 
 }
 
+void updateRound() {
+    roundCount++;
+    fallingObject.speed += 1;  // Increase the speed for each new round
+}
+
+void updateScore() {
+    if (fallingObject.isGold) {
+        score += 10; // Adjust the points as needed
+    } else {
+        score -= 5;  // Adjust the points as needed
+    }
+}
+
+
+
 void x11_setFont(unsigned int idx)
 {
     char *fonts[] = { "fixed","5x8","6x9","6x10","6x12","6x13","6x13bold",
@@ -109,7 +127,7 @@ void x11_init_xwindows(void)
     g.yres = 200;
     g.win = XCreateSimpleWindow(g.dpy, RootWindow(g.dpy, scr), 1, 1,
                             g.xres, g.yres, 0, 0x00ffffff, 0x00000000);
-    XStoreName(g.dpy, g.win, "cs3600 xwin sample");
+    XStoreName(g.dpy, g.win, "GoldRushLite ");
     g.gc = XCreateGC(g.dpy, g.win, 0, NULL);
     XMapWindow(g.dpy, g.win);
     XSelectInput(g.dpy, g.win, ExposureMask | StructureNotifyMask |
