@@ -75,7 +75,7 @@ void render(void)
     int remainingTime = TIMER_INTERVAL - (int)(currentTime - startTime);
     char timerString[20];
     snprintf(timerString, sizeof(timerString), "Timer: %d", remainingTime);
-    XDrawString(g.dpy, g.win, g.gc, 1, 40, timerString, strlen(timerString));
+    XDrawString(g.dpy, g.win, g.gc, 1, 20, timerString, strlen(timerString));
 
 
 
