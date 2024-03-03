@@ -49,9 +49,7 @@ void render(void)
         XDrawString(g.dpy, g.win, g.gc, 300, 20, "Score: ", 7);
         
         // Draw border
-        XDrawRectangle(g.dpy, g.win, g.gc, 0, 0, width * 20, height * 20);
-
-        // Draw pan
+        XDrawRectangle(g.dpy, g.win, g.gc, 0, 0, width * 100, height * 100);
         XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
 
         XFlush(g.dpy);
