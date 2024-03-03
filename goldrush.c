@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
+
+#define TIMER_INTERVAL 30
+
 
 bool gameOver;
 const int width = 20;
@@ -13,6 +17,8 @@ const int height = 20;
 int score;
 int panX = 100;
 int panY = 100;
+time_t startTime;
+int roundCount =1;
 
 struct Global {
     Display *dpy;
@@ -21,18 +27,36 @@ struct Global {
     int xres, yres;
 } g;
 
+typedef struct {
+      int x, y;
+      int isGold; // 1 for gold, 0 for dynamite/rock
+      int speed;  // Speed of falling object
+  }o;
+
+o fallingObject;
+
 void x11_cleanup_xwindows(void);
 void x11_init_xwindows(void);
 void x11_clear_window(void);
 void render(void);
 
- 
+void startTimer() {
+     time(&startTime);
+ }
+
+int isTimeUp() {
+    time_t currentTime;
+     time(&currentTime);
+     return (currentTime - startTime) >= TIMER_INTERVAL;
+}
+
+
 void render(void)
 {
         XClearWindow(g.dpy, g.win);
 
         // Font
-        XSetFont(g.dpy, g.gc, XLoadFont(g.dpy, "9x15bold"));
+       // XSetFont(g.dpy, g.gc, XLoadFont(g.dpy, "9x15bold"));
         
         // Foreground color
         XSetForeground(g.dpy, g.gc, 0xffffff);
@@ -42,8 +66,19 @@ void render(void)
         XSetForeground(g.dpy, g.gc, 0x48494B);
         XDrawString(g.dpy, g.win, g.gc, 125, 20, "GoldRushLite", 12);
 
+       // XSetForeground(g.dpy, g.gc, 0x48494B);
+       // XDrawString(g.dpy, g.win, g.gc, 1, 20, "Timer: ", 7);
+
         XSetForeground(g.dpy, g.gc, 0x48494B);
-        XDrawString(g.dpy, g.win, g.gc, 1, 20, "Timer: ", 7);
+    time_t currentTime;
+    time(&currentTime);
+    int remainingTime = TIMER_INTERVAL - (int)(currentTime - startTime);
+    char timerString[20];
+    snprintf(timerString, sizeof(timerString), "Timer: %d", remainingTime);
+    XDrawString(g.dpy, g.win, g.gc, 1, 40, timerString, strlen(timerString));
+
+
+
 
         XSetForeground(g.dpy, g.gc, 0x48494B);
         XDrawString(g.dpy, g.win, g.gc, 300, 20, "Score: ", 7);
@@ -55,6 +90,21 @@ void render(void)
         XFlush(g.dpy);
 
 }
+
+void updateRound() {
+    roundCount++;
+    fallingObject.speed += 1;  // Increase the speed for each new round
+}
+
+void updateScore() {
+    if (fallingObject.isGold) {
+        score += 10; // Adjust the points as needed
+    } else {
+        score -= 5;  // Adjust the points as needed
+    }
+}
+
+
 
 void x11_setFont(unsigned int idx)
 {
@@ -86,7 +136,7 @@ void x11_init_xwindows(void)
     g.yres = 200;
     g.win = XCreateSimpleWindow(g.dpy, RootWindow(g.dpy, scr), 1, 1,
                             g.xres, g.yres, 0, 0x00ffffff, 0x00000000);
-    XStoreName(g.dpy, g.win, "cs3600 xwin sample");
+    XStoreName(g.dpy, g.win, "GoldRushLite ");
     g.gc = XCreateGC(g.dpy, g.win, 0, NULL);
     XMapWindow(g.dpy, g.win);
     XSelectInput(g.dpy, g.win, ExposureMask | StructureNotifyMask |
@@ -97,7 +147,14 @@ void x11_init_xwindows(void)
 
 int main(){
  x11_init_xwindows();
+
+ startTimer();
+
     while (!gameOver) {
+        if(isTimeUp()){
+            gameOver = true;
+        }
+
         render();
         XEvent e;
         XNextEvent(g.dpy, &e);
