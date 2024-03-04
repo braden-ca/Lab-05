@@ -59,6 +59,18 @@ void moveObject(o *obj) {
     }
 }
 
+void checkCollision(o *obj) {
+      // Check collision with the pan
+      if (obj->x + 20 >= panX && obj->x < panX + 20 && obj->y + 20 >= panY && obj->y < panY + 20) {
+          if (obj->isGold) {
+              score += 10; // Gold object - add points
+          } else {
+              score -= 5;  // Dynamite object - subtract points
+          }
+          NewObject(obj);
+      }
+  }
+
 void startTimer() {
     time(&startTime);
 }
@@ -94,8 +106,10 @@ void render(void)
     XDrawString(g.dpy, g.win, g.gc, 1, 20, timerString, strlen(timerString));
 
     //Draw Score
-    XSetForeground(g.dpy, g.gc, 0x48494B);
-    XDrawString(g.dpy, g.win, g.gc, 300, 20, "Score: ", 7);
+     XSetForeground(g.dpy, g.gc, 0x48494B);
+     char scoreString[20];
+     snprintf(scoreString, sizeof(scoreString), "Score: %d", score);
+     XDrawString(g.dpy, g.win, g.gc, 300, 20, scoreString, strlen(scoreString));
 
     //Draw Pan
     XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
@@ -116,14 +130,6 @@ void updateRound() {
     fallingObjectGold.speed += 1;  // Increase the speed for each new round
     fallingObjectDynamite.speed += 1; 
 }
-
-/*void updateScore() {
-  if (fallingObject.isGold) {
-  score += 10; // Adjust the points as needed
-  } else {
-  score -= 5;  // Adjust the points as needed
-  }
-  }*/
 
 void x11_setFont(unsigned int idx)
 {
