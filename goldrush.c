@@ -10,7 +10,6 @@
 
 #define TIMER_INTERVAL 30
 
-
 bool gameOver;
 const int width = 20;
 const int height = 20;
@@ -28,48 +27,65 @@ struct Global {
 } g;
 
 typedef struct {
-      int x, y;
-      int isGold; // 1 for gold, 0 for dynamite/rock
-      int speed;  // Speed of falling object
-  }o;
+    int x, y;
+    int isGold; // 1 for gold, 0 for dynamite/rock
+    int speed;  // Speed of falling object
+}o;
 
-o fallingObject;
+o fallingObjectGold;
+o fallingObjectDynamite;
 
 void x11_cleanup_xwindows(void);
 void x11_init_xwindows(void);
 void x11_clear_window(void);
 void render(void);
 
+void NewObject(o *obj) {
+    obj->x = rand() % (g.xres - 20); 
+    obj->y = 0;                  
+    obj->isGold = rand() % 2;        
+    obj->speed = rand() % 5 + 1;
+}
+
+void moveObject(o *obj) {
+    obj->y += obj->speed;
+
+    // Ensure the object stays within the screen boundaries
+    if (obj->x < 0) obj->x = 0;
+    if (obj->x > (g.xres - 20)) obj->x = g.xres - 20;
+    if (obj->y > (g.yres - 20)) {
+
+        NewObject(obj);
+    }
+}
+
 void startTimer() {
-     time(&startTime);
- }
+    time(&startTime);
+}
 
 int isTimeUp() {
     time_t currentTime;
-     time(&currentTime);
-     return (currentTime - startTime) >= TIMER_INTERVAL;
+    time(&currentTime);
+    return (currentTime - startTime) >= TIMER_INTERVAL;
 }
-
 
 void render(void)
 {
-        XClearWindow(g.dpy, g.win);
+    XClearWindow(g.dpy, g.win);
 
-        // Font
-       // XSetFont(g.dpy, g.gc, XLoadFont(g.dpy, "9x15bold"));
-        
-        // Foreground color
-        XSetForeground(g.dpy, g.gc, 0xffffff);
-        XFillRectangle(g.dpy, g.win, g.gc, 0, 0, g.xres, g.yres);
+    // Font
+    // XSetFont(g.dpy, g.gc, XLoadFont(g.dpy, "9x15bold"));
 
-        // Include text
-        XSetForeground(g.dpy, g.gc, 0x48494B);
-        XDrawString(g.dpy, g.win, g.gc, 125, 20, "GoldRushLite", 12);
+    // Foreground color
+    XSetForeground(g.dpy, g.gc, 0xffffff);
+    XFillRectangle(g.dpy, g.win, g.gc, 0, 0, g.xres, g.yres);
 
-       // XSetForeground(g.dpy, g.gc, 0x48494B);
-       // XDrawString(g.dpy, g.win, g.gc, 1, 20, "Timer: ", 7);
-
-        XSetForeground(g.dpy, g.gc, 0x48494B);
+    // Include text
+    XSetForeground(g.dpy, g.gc, 0x48494B);
+    XDrawString(g.dpy, g.win, g.gc, 125, 20, "GoldRushLite", 12);
+    
+    //Draw Timer
+    XSetForeground(g.dpy, g.gc, 0x48494B);
     time_t currentTime;
     time(&currentTime);
     int remainingTime = TIMER_INTERVAL - (int)(currentTime - startTime);
@@ -77,34 +93,37 @@ void render(void)
     snprintf(timerString, sizeof(timerString), "Timer: %d", remainingTime);
     XDrawString(g.dpy, g.win, g.gc, 1, 20, timerString, strlen(timerString));
 
+    //Draw Score
+    XSetForeground(g.dpy, g.gc, 0x48494B);
+    XDrawString(g.dpy, g.win, g.gc, 300, 20, "Score: ", 7);
 
+    //Draw Pan
+    XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
 
+    // Draw falling objects
+    XSetForeground(g.dpy, g.gc, 0xFFD700); // Gold color
+    XFillRectangle(g.dpy, g.win, g.gc, fallingObjectGold.x, fallingObjectGold.y, 20, 20);
 
-        XSetForeground(g.dpy, g.gc, 0x48494B);
-        XDrawString(g.dpy, g.win, g.gc, 300, 20, "Score: ", 7);
-        
-        // Draw border
-        XDrawRectangle(g.dpy, g.win, g.gc, 0, 0, width * 100, height * 100);
-        XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
+    XSetForeground(g.dpy, g.gc, 0xFF4500); // Dynamite color
+    XFillRectangle(g.dpy, g.win, g.gc, fallingObjectDynamite.x, fallingObjectDynamite.y, 20, 20);
 
-        XFlush(g.dpy);
+    XFlush(g.dpy);
 
 }
 
 void updateRound() {
     roundCount++;
-    fallingObject.speed += 1;  // Increase the speed for each new round
+    fallingObjectGold.speed += 1;  // Increase the speed for each new round
+    fallingObjectDynamite.speed += 1; 
 }
 
-void updateScore() {
-    if (fallingObject.isGold) {
-        score += 10; // Adjust the points as needed
-    } else {
-        score -= 5;  // Adjust the points as needed
-    }
-}
-
-
+/*void updateScore() {
+  if (fallingObject.isGold) {
+  score += 10; // Adjust the points as needed
+  } else {
+  score -= 5;  // Adjust the points as needed
+  }
+  }*/
 
 void x11_setFont(unsigned int idx)
 {
@@ -125,8 +144,6 @@ void x11_init_xwindows(void)
 {
     int scr;
 
-
-
     if (!(g.dpy = XOpenDisplay(NULL))) {
         fprintf(stderr, "ERROR: could not open display!\n");
         exit(EXIT_FAILURE);
@@ -135,20 +152,23 @@ void x11_init_xwindows(void)
     g.xres = 400;
     g.yres = 200;
     g.win = XCreateSimpleWindow(g.dpy, RootWindow(g.dpy, scr), 1, 1,
-                            g.xres, g.yres, 0, 0x00ffffff, 0x00000000);
+            g.xres, g.yres, 0, 0x00ffffff, 0x00000000);
     XStoreName(g.dpy, g.win, "GoldRushLite ");
     g.gc = XCreateGC(g.dpy, g.win, 0, NULL);
     XMapWindow(g.dpy, g.win);
     XSelectInput(g.dpy, g.win, ExposureMask | StructureNotifyMask |
-                                PointerMotionMask | ButtonPressMask |
-                                ButtonReleaseMask | KeyPressMask);
+            PointerMotionMask | ButtonPressMask |
+            ButtonReleaseMask | KeyPressMask);
 }
 
 
 int main(){
- x11_init_xwindows();
+    x11_init_xwindows();
 
- startTimer();
+    startTimer();
+
+    NewObject(&fallingObjectGold);
+    NewObject(&fallingObjectDynamite);
 
     while (!gameOver) {
         if(isTimeUp()){
@@ -156,13 +176,17 @@ int main(){
         }
 
         render();
+
+        moveObject(&fallingObjectGold);
+        moveObject(&fallingObjectDynamite);
+
         XEvent e;
         XNextEvent(g.dpy, &e);
         if (e.type == Expose) {
             // Redraw the window
             render();
         }
-            if (e.type == KeyPress || e.type == KeyRelease) {
+        if (e.type == KeyPress || e.type == KeyRelease) {
             int key = XLookupKeysym(&e.xkey, 0);
             switch (key) {
                 case XK_Left:
@@ -181,7 +205,7 @@ int main(){
                     break;
             }
         }
-    }
-x11_cleanup_xwindows();
+    } 
+    x11_cleanup_xwindows();
     return 0;
 }
