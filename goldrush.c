@@ -60,16 +60,30 @@ void moveObject(o *obj) {
 }
 
 void checkCollision(o *obj) {
-      // Check collision with the pan
-      if (obj->x + 20 >= panX && obj->x < panX + 20 && obj->y + 20 >= panY && obj->y < panY + 20) {
-          if (obj->isGold) {
-              score += 10; // Gold object - add points
-          } else {
-              score -= 5;  // Dynamite object - subtract points
-          }
-          NewObject(obj);
-      }
-  }
+    // Check collision with the pan
+    if (obj->x + 20 >= panX && obj->x < panX + 20 && obj->y + 20 >= panY && obj->y < panY + 20) {
+        if (obj->isGold) {
+            score += 10; // Gold object - add points
+        } else {
+            score -= 5;  // Dynamite object - subtract points
+        }
+        NewObject(obj);
+    }
+}
+
+void gameLogic(void) {
+    moveObject(&fallingObjectGold);
+    moveObject(&fallingObjectDynamite);
+
+    // Ensure the pan stays within the screen boundaries
+    if (panX < 0) panX = 0;
+    if (panX > (g.xres - 20)) panX = g.xres - 20;
+    if (panY < 0) panY = 0;
+    if (panY > (g.yres - 20)) panY = g.yres - 20;
+
+    checkCollision(&fallingObjectGold);
+    checkCollision(&fallingObjectDynamite);
+}
 
 void startTimer() {
     time(&startTime);
@@ -85,9 +99,6 @@ void render(void)
 {
     XClearWindow(g.dpy, g.win);
 
-    // Font
-    // XSetFont(g.dpy, g.gc, XLoadFont(g.dpy, "9x15bold"));
-
     // Foreground color
     XSetForeground(g.dpy, g.gc, 0xffffff);
     XFillRectangle(g.dpy, g.win, g.gc, 0, 0, g.xres, g.yres);
@@ -95,7 +106,7 @@ void render(void)
     // Include text
     XSetForeground(g.dpy, g.gc, 0x48494B);
     XDrawString(g.dpy, g.win, g.gc, 125, 20, "GoldRushLite", 12);
-    
+
     //Draw Timer
     XSetForeground(g.dpy, g.gc, 0x48494B);
     time_t currentTime;
@@ -106,10 +117,10 @@ void render(void)
     XDrawString(g.dpy, g.win, g.gc, 1, 20, timerString, strlen(timerString));
 
     //Draw Score
-     XSetForeground(g.dpy, g.gc, 0x48494B);
-     char scoreString[20];
-     snprintf(scoreString, sizeof(scoreString), "Score: %d", score);
-     XDrawString(g.dpy, g.win, g.gc, 300, 20, scoreString, strlen(scoreString));
+    XSetForeground(g.dpy, g.gc, 0x48494B);
+    char scoreString[20];
+    snprintf(scoreString, sizeof(scoreString), "Score: %d", score);
+    XDrawString(g.dpy, g.win, g.gc, 300, 20, scoreString, strlen(scoreString));
 
     //Draw Pan
     XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
@@ -129,15 +140,6 @@ void updateRound() {
     roundCount++;
     fallingObjectGold.speed += 1;  // Increase the speed for each new round
     fallingObjectDynamite.speed += 1; 
-}
-
-void x11_setFont(unsigned int idx)
-{
-    char *fonts[] = { "fixed","5x8","6x9","6x10","6x12","6x13","6x13bold",
-        "7x13","7x13bold","7x14","8x13","8x13bold","8x16","9x15","9x15bold",
-        "10x20","12x24" };
-    Font f = XLoadFont(g.dpy, fonts[idx]);
-    XSetFont(g.dpy, g.gc, f);
 }
 
 void x11_cleanup_xwindows(void)
@@ -182,6 +184,7 @@ int main(){
         }
 
         render();
+        gameLogic();
 
         moveObject(&fallingObjectGold);
         moveObject(&fallingObjectDynamite);
@@ -211,7 +214,8 @@ int main(){
                     break;
             }
         }
-    } 
+    }
+    printf("Game Over! Your Final Score: %d\n", score); 
     x11_cleanup_xwindows();
     return 0;
 }
