@@ -191,6 +191,7 @@ int main(){
 
         XEvent e;
         XNextEvent(g.dpy, &e);
+
         if (e.type == Expose) {
             // Redraw the window
             render();
@@ -200,20 +201,17 @@ int main(){
             switch (key) {
                 case XK_Left:
                     panX -= 5;
+                    if (panX < 0 ) panX = 0;
                     break;
                 case XK_Right:
                     panX += 5;
-                    break;
-                case XK_Up:
-                    panY -= 5;
-                    break;
-                case XK_Down:
-                    panY += 5;
+                    if (panX > (g.xres - 20)) panX = g.xres - 20;
                     break;
                 default:
                     break;
             }
         }
+        panY = g.yres - 20;
     }
     printf("Game Over! Your Final Score: %d\n", score); 
     x11_cleanup_xwindows();
