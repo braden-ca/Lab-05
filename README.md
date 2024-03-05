@@ -12,9 +12,7 @@ so these graphics will work in your terminal. Depending on what type of computer
 items installed to make the game work you need to compile and run it in your terminal. To compile you need ggc since we are working in c then the file name which is goldrush.c, then the -Wall command
 to check for all warnings, then the -lX11 command to call all the libarires needed to run the program. 
 
-This is how you compile and run it
-ggc goldrush.c -Wall -lX11
-./a.out
+This is what it ahould look like to compile and run it ggc goldrush.c -Wall -lX11 and ./a.out
 
 For users to get help since we are in early development stages we do not yet have an instructional page, how-to page, or q&a page but we hope to later implement these guides in order to help our users
 maximize their play time. 
