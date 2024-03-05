@@ -18,6 +18,8 @@ int panX = 100;
 int panY = 100;
 time_t startTime;
 int roundCount =1;
+unsigned long goldColor = 0xFFD700;
+unsigned long dynamiteColor = 0xFF4500;
 
 struct Global {
     Display *dpy;
@@ -43,8 +45,8 @@ void render(void);
 void NewObject(o *obj) {
     obj->x = rand() % (g.xres - 20); 
     obj->y = 0;                  
-    obj->isGold = rand() % 2;        
-    obj->speed = rand() % 5 + 1;
+    obj->isGold = rand() % 2;
+    obj->speed = rand() % 4 + 1;
 }
 
 void moveObject(o *obj) {
@@ -62,9 +64,9 @@ void moveObject(o *obj) {
 void checkCollision(o *obj) {
     // Check collision with the pan
     if (obj->x + 20 >= panX && obj->x < panX + 20 && obj->y + 20 >= panY && obj->y < panY + 20) {
-        if (obj->isGold) {
+        if (obj->isGold && goldColor == 0xFFD700) {
             score += 10; // Gold object - add points
-        } else {
+        } else if (!obj->isGold && dynamiteColor == 0xFF4500) {
             score -= 5;  // Dynamite object - subtract points
         }
         NewObject(obj);
@@ -126,10 +128,10 @@ void render(void)
     XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
 
     // Draw falling objects
-    XSetForeground(g.dpy, g.gc, 0xFFD700); // Gold color
+    XSetForeground(g.dpy, g.gc, goldColor); // Gold color
     XFillRectangle(g.dpy, g.win, g.gc, fallingObjectGold.x, fallingObjectGold.y, 20, 20);
 
-    XSetForeground(g.dpy, g.gc, 0xFF4500); // Dynamite color
+    XSetForeground(g.dpy, g.gc, dynamiteColor); // Dynamite color
     XFillRectangle(g.dpy, g.win, g.gc, fallingObjectDynamite.x, fallingObjectDynamite.y, 20, 20);
 
     XFlush(g.dpy);
@@ -190,12 +192,14 @@ int main(){
         moveObject(&fallingObjectDynamite);
 
         XEvent e;
+        while (XPending(g.dpy)) {
         XNextEvent(g.dpy, &e);
 
-        if (e.type == Expose) {
+       /* if (e.type == Expose) {
             // Redraw the window
             render();
         }
+        */
         if (e.type == KeyPress || e.type == KeyRelease) {
             int key = XLookupKeysym(&e.xkey, 0);
             switch (key) {
@@ -211,7 +215,10 @@ int main(){
                     break;
             }
         }
+        }
+        
         panY = g.yres - 20;
+        usleep(35000);
     }
     printf("Game Over! Your Final Score: %d\n", score); 
     x11_cleanup_xwindows();
