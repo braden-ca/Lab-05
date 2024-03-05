@@ -33,9 +33,12 @@ typedef struct {
     unsigned int color;            // color of objects
 }o;
 
+// variables of this structure type
 o fallingObjectGold;
 o fallingObjectDynamite;
 
+// obj points to the o struct
+// now its accessing the members of the struct using -> 
 void NewObject(o *obj) {
     obj->x = rand() % (g.xres - 20); 
     obj->y = 0;                  
