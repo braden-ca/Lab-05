@@ -18,8 +18,6 @@ int panX = 100;
 int panY = 100;
 time_t startTime;
 int roundCount =1;
-unsigned long goldColor = 0xFFD700;
-unsigned long dynamiteColor = 0xFF4500;
 
 struct Global {
     Display *dpy;
@@ -32,21 +30,18 @@ typedef struct {
     int x, y;
     int isGold; // 1 for gold, 0 for dynamite/rock
     int speed;  // Speed of falling object
+    unsigned int color;            // color of objects
 }o;
 
 o fallingObjectGold;
 o fallingObjectDynamite;
 
-void x11_cleanup_xwindows(void);
-void x11_init_xwindows(void);
-void x11_clear_window(void);
-void render(void);
-
 void NewObject(o *obj) {
     obj->x = rand() % (g.xres - 20); 
     obj->y = 0;                  
     obj->isGold = rand() % 2;
-    obj->speed = rand() % 4 + 1;
+    obj->speed = rand() % 5 + 1;
+    obj->color = obj->isGold ? 0xFFD700 : 0xFF4500;
 }
 
 void moveObject(o *obj) {
@@ -64,9 +59,9 @@ void moveObject(o *obj) {
 void checkCollision(o *obj) {
     // Check collision with the pan
     if (obj->x + 20 >= panX && obj->x < panX + 20 && obj->y + 20 >= panY && obj->y < panY + 20) {
-        if (obj->isGold && goldColor == 0xFFD700) {
+        if (obj->isGold) {
             score += 10; // Gold object - add points
-        } else if (!obj->isGold && dynamiteColor == 0xFF4500) {
+        } else {
             score -= 5;  // Dynamite object - subtract points
         }
         NewObject(obj);
@@ -128,10 +123,10 @@ void render(void)
     XFillRectangle(g.dpy, g.win, g.gc, panX, panY, 20, 20);
 
     // Draw falling objects
-    XSetForeground(g.dpy, g.gc, goldColor); // Gold color
+    XSetForeground(g.dpy, g.gc, fallingObjectGold.color); // Gold color
     XFillRectangle(g.dpy, g.win, g.gc, fallingObjectGold.x, fallingObjectGold.y, 20, 20);
 
-    XSetForeground(g.dpy, g.gc, dynamiteColor); // Dynamite color
+    XSetForeground(g.dpy, g.gc, fallingObjectDynamite.color); // Dynamite color
     XFillRectangle(g.dpy, g.win, g.gc, fallingObjectDynamite.x, fallingObjectDynamite.y, 20, 20);
 
     XFlush(g.dpy);
